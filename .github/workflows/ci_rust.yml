@@ -1,0 +1,46 @@
+name: ci_rust
+
+on:
+  workflow_call:
+    inputs:
+      command:
+        description: 'The command you want to run (e.g., just test)'
+        required: false
+        default: 'just test'
+        type: string
+      need_just:
+        description: 'Whether the just command needs to be installed'
+        required: false
+        default: true
+        type: boolean
+      rust_toolchain:
+        description: 'The Rust toolchain to use (e.g., stable, nightly, 1.89.0)'
+        required: false
+        default: 'nightly'
+        type: string
+      rust_components:
+        description: 'Additional Rust components to install (e.g., rustfmt, clippy)'
+        required: false
+        default: 'rustfmt,clippy'
+        type: string
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      # https://github.com/dtolnay/rust-toolchain#inputs
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ inputs.rust_toolchain }}
+          components: ${{ inputs.rust_components }}
+
+      - uses: swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@just
+        if: ${{ inputs.need_just }}
+      - name: Run Command
+        run: ${{ inputs.command }}
+        shell: bash
