@@ -3,10 +3,20 @@ name: ci_rust
 on:
   workflow_call:
     inputs:
+      before_command:
+        description: 'A command to run before the main command'
+        required: false
+        default: ''
+        type: string
       command:
         description: 'The command you want to run (e.g., just test)'
         required: false
         default: 'just test'
+        type: string
+      after_command:
+        description: 'A command to run after the main command'
+        required: false
+        default: ''
         type: string
       need_just:
         description: 'Whether the just command needs to be installed'
@@ -27,7 +37,6 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v6
 
@@ -41,6 +50,15 @@ jobs:
       - uses: swatinem/rust-cache@v2
       - uses: taiki-e/install-action@just
         if: ${{ inputs.need_just }}
+
+      - name: Run Before Command
+        if: ${{ inputs.before_command != '' }}
+        run: ${{ inputs.before_command }}
+        shell: bash
       - name: Run Command
         run: ${{ inputs.command }}
+        shell: bash
+      - name: Run After Command
+        if: ${{ inputs.after_command != '' }}
+        run: ${{ inputs.after_command }}
         shell: bash
